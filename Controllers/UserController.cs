@@ -115,13 +115,15 @@ namespace MinimalChatAppApi.Controllers
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Email, user.Email)
             };
-            string _jwtSecret = _configuration.GetSection("AppSettings:Token").Value;
+            // string _jwtSecret = _configuration.GetSection("AppSettings:Token").Value;
+            string _jwtSecret = _configuration["AppSettings:Token"];
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                //issuer: "YourIssuer",
-                //audience: "YourAudience",
+                issuer: "MinimalChatServer",
+                audience: "MimnalChatClient",
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(3),
                 signingCredentials: credentials
@@ -129,11 +131,37 @@ namespace MinimalChatAppApi.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        // GET: api/User
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        {
-            return await _context.Users.ToListAsync();
+
+        [HttpGet("/api/users")]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers() {
+            // Get the current user
+            var currentUser = HttpContext.User;
+
+            // Access user properties
+            var userId = currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = currentUser.FindFirst(ClaimTypes.Name)?.Value;
+            var userEmail = currentUser.FindFirst(ClaimTypes.Email)?.Value;
+            await Console.Out.WriteLineAsync(userId);
+       
+
+            // Retrieve the list of users from the database, excluding the current user
+            var users = await _context.Users
+                .Where(u => u.Id != Convert.ToInt32(userId))
+                .Select(u => new UserProfileDto
+                {
+                    UserId = u.Id,
+                    Name = u.Name,
+                    Email = u.Email
+                })
+                .ToListAsync();
+
+            // Construct the response body
+            var responseDto = new UserListResponseDto
+            {
+                Users = users
+            };
+
+            return Ok(users);
         }
 
         // GET: api/User/5
