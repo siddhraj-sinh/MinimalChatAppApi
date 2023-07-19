@@ -69,65 +69,67 @@ namespace MinimalChatAppApi.Controllers
             return hash;
         }
 
-        //[HttpPost("/api/login")]
-        //public async Task<ActionResult<User>> Login(LoginRequestDto loginDto) {
-        //    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+        [HttpPost("/api/login")]
+        public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto loginDto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
-        //    //check email
-        //    if (user == null) return Unauthorized("Invalid Credentails");
+            //check email
+            if (user == null) return Unauthorized("Invalid Credentails");
 
 
-        //    //verify password
-        //    bool isPasswordValid = DecodePassword(loginDto.Password, user.Password);
-        //    if (!isPasswordValid)
-        //    {
-        //        return Unauthorized("Invalid credentials");
-        //    }
+            //verify password
+            bool isPasswordValid = DecodePassword(loginDto.Password, user.Password);
+            if (!isPasswordValid)
+            {
+                return Unauthorized("Invalid credentials");
+            }
 
-        //    var token = GenerateJwtToken(user);
+            var token = GenerateJwtToken(user);
 
-        //    // Construct the response body
-        //    var responseDto = new LoginResponseDto
-        //    {
-        //        Token = token,
-        //        Profile = new UserProfileDto
-        //        {
-        //            UserId = user.Id,
-        //            Name = user.Name,
-        //            Email = user.Email
-        //        }
-        //    };
-        //    return Ok(responseDto);
-        //}
+            // Construct the response body
+            var responseDto = new LoginResponseDto
+            {
+                Token = token,
+                Profile = new UserProfileDto
+                {
+                    UserId = user.Id,
+                    Name = user.Name,
+                    Email = user.Email
+                }
+            };
+            return Ok(responseDto);
+        }
 
-        //public bool DecodePassword(string password,string hashPassword) {
-        //    return BCrypt.Net.BCrypt.Verify(password, hashPassword);
-        //}
+        private bool DecodePassword(string password, string hashPassword)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hashPassword);
+        }
 
-        //// Helper method to generate a JWT token
-        //private string GenerateJwtToken(User user)
-        //{
-        //    var claims = new[]
-        //    {
-        //        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        //        new Claim(ClaimTypes.Name, user.Name),
-        //        new Claim(ClaimTypes.Email, user.Email)
-        //    };
-        //    string _jwtSecret = _configuration.GetSection("AppSettings:Token").Value;
-        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret ));
-        //    var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        // Helper method to generate a JWT token
+        private string GenerateJwtToken(User user)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
+            string _jwtSecret = _configuration.GetSection("AppSettings:Token").Value;
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        //    var token = new JwtSecurityToken(
-        //        //issuer: "YourIssuer",
-        //        //audience: "YourAudience",
-        //        claims: claims,
-        //        expires: DateTime.UtcNow.AddDays(3), 
-        //        signingCredentials: credentials
-        //    );
+            var token = new JwtSecurityToken(
+                //issuer: "YourIssuer",
+                //audience: "YourAudience",
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(3),
+                signingCredentials: credentials
+            );
 
-        //    return new JwtSecurityTokenHandler().WriteToken(token);
-        //}
-        //// GET: api/User
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        // GET: api/User
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
