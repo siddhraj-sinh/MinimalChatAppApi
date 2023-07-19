@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinimalChatAppApi.Data;
+using System.Text;
 
 namespace MinimalChatAppApi
 {
@@ -18,6 +21,19 @@ namespace MinimalChatAppApi
             builder.Services.AddDbContext<ChatContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("ChatContext")));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = "MimnalChatClient",
+                    ValidIssuer = "MinimalChatServer",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]))
+                };
+            });
 
             var app = builder.Build();
 
@@ -47,7 +63,7 @@ namespace MinimalChatAppApi
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            app.UseAuthentication();
 
             app.MapControllers();
 

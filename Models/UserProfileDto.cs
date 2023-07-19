@@ -6,4 +6,9 @@
         public string Name { get; set; }
         public string Email { get; set; }
     }
+
+    public class UserListResponseDto
+    {
+        public List<UserProfileDto> Users { get; set; }
+    }
 }
