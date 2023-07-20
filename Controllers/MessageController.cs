@@ -67,6 +67,43 @@ namespace MinimalChatAppApi.Controllers
 
         }
 
+        [HttpPut("/api/messages/{messageId}")]
+        [Authorize]
+        public async Task<IActionResult> EditMessage(int messageId, [FromBody] EditMessageDto messageDto)
+        {
+            // Get the current user
+            var currentUser = HttpContext.User;
+
+            // Access user properties
+            var currentUserId = Convert.ToInt32(currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            // Find the message in the database based on messageId and currentUserId
+            var message = await _context.Messages
+                .Where(m => m.Id == messageId && (m.SenderId == currentUserId))
+                .SingleOrDefaultAsync();
+            // Check if the message exists
+            if (message == null)
+            {
+                return NotFound(new { error = "Message not found" });
+            }
+
+            // Check if the current user is the sender of the message
+            if (message.SenderId != currentUserId)
+            {
+                return Unauthorized(new { error = "You can only edit your own messages" });
+            }
+
+            // Update the message content
+            message.MessageContent = messageDto.Content;
+            message.Timestamp = DateTime.UtcNow;
+
+            // Save the changes to the database
+            await _context.SaveChangesAsync();
+
+            // Return 200 OK with a success message
+            return Ok(new { message = "Message edited successfully" });
+        }
+
         // GET: api/Message
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Message>>> GetMessages()
