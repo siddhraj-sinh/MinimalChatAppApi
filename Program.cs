@@ -19,6 +19,8 @@ namespace MinimalChatAppApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddDbContextFactory<ChatContext>(options =>
+  options.UseSqlServer(builder.Configuration.GetConnectionString("ChatContext")));
             builder.Services.AddDbContext<ChatContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("ChatContext")));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();

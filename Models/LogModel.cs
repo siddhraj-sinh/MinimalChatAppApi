@@ -2,6 +2,7 @@
 {
     public class LogModel
     {
+        public int Id { get; set; }
         public DateTime Timestamp { get; set; }
         public string IpAddress { get; set; }
         public string Username { get; set; }

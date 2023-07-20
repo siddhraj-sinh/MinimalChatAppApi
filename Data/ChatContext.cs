@@ -11,6 +11,8 @@ namespace MinimalChatAppApi.Data
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
+
+        public DbSet<LogModel> Log { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
