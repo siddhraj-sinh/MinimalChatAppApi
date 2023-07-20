@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MinimalChatAppApi.Data;
+using MinimalChatAppApi.Middlewares;
 using System.Text;
 
 namespace MinimalChatAppApi
@@ -49,7 +50,7 @@ namespace MinimalChatAppApi
                 app.UseDeveloperExceptionPage();
                 app.UseMigrationsEndPoint();
             }
-
+           
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -59,14 +60,14 @@ namespace MinimalChatAppApi
                 // DbInitializer.Initialize(context);
             }
 
-
+        
             app.UseHttpsRedirection();
 
 
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
-
+            app.UseMiddleware<LoggingMiddleware>();
             app.Run();
         }
     }
