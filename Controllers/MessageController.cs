@@ -132,6 +132,60 @@ namespace MinimalChatAppApi.Controllers
             return Ok(new { message = "Message deleted successfully" });
         }
 
+        [HttpGet("/api/messages")]
+        public async Task<IActionResult> GetConversationHistory([FromBody] ConversationDto requestDto) {
+            var currentUser = HttpContext.User;
+            // Access user properties
+            var currentUserId = Convert.ToInt32(currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (currentUserId == requestDto.UserId)
+            {
+                return BadRequest(new { error = "You cannot retrieve your own conversation history." });
+            }
+            // Find the conversation between the current user and the specified user
+            var conversation = _context.Messages
+                .Where(m => (m.SenderId == currentUserId && m.ReceiverId == requestDto.UserId) ||
+                            (m.SenderId == requestDto.UserId && m.ReceiverId == currentUserId));
+
+
+            // Check if the conversation exists
+            if (!conversation.Any())
+            {
+                return NotFound(new { error = "Conversation not found" });
+            }
+
+            // Apply filters if provided
+            if (requestDto.Before.HasValue)
+            {
+                conversation = conversation.Where(m => m.Timestamp < requestDto.Before);
+            }
+
+            // Apply sorting
+            if (requestDto.Sort.ToLower() == "desc")
+            {
+                conversation = conversation.OrderByDescending(m => m.Timestamp);
+            }
+            else
+            {
+                conversation = conversation.OrderBy(m => m.Timestamp);
+            }
+
+            // Limit the number of messages to be retrieved
+            conversation = conversation.Take(requestDto.Count);
+
+            // Select only the required properties for the response and map to the DTO
+            var messages = conversation.Select(m => new ConversationResponseDto
+            {
+                Id = m.Id,
+                SenderId = m.SenderId,
+                ReceiverId = m.ReceiverId,
+                Content = m.MessageContent,
+                Timestamp = m.Timestamp
+            });
+
+            return Ok(new ConversationHistoryResponseDto { Messages = messages });
+
+        }
+
        
     }
 }
