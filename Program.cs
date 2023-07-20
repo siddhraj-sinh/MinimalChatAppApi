@@ -29,8 +29,8 @@ namespace MinimalChatAppApi
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidAudience = "MimnalChatClient",
-                    ValidIssuer = "MinimalChatServer",
+                    ValidAudience = "JWTServicePostmanClient",
+                    ValidIssuer = "JWTAuthenticationServer",
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]))
                 };
             });
@@ -62,9 +62,9 @@ namespace MinimalChatAppApi
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-            app.UseAuthentication();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.MapControllers();
 
             app.Run();

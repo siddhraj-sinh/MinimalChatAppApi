@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MinimalChatAppApi.Controllers
 {
@@ -117,13 +118,13 @@ namespace MinimalChatAppApi.Controllers
             };
             // string _jwtSecret = _configuration.GetSection("AppSettings:Token").Value;
             string _jwtSecret = _configuration["AppSettings:Token"];
-
+            Console.WriteLine(_jwtSecret);
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: "MinimalChatServer",
-                audience: "MimnalChatClient",
+                issuer: "JWTAuthenticationServer",
+                audience: "JWTServicePostmanClient",
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(3),
                 signingCredentials: credentials
@@ -132,6 +133,7 @@ namespace MinimalChatAppApi.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        [Authorize]
         [HttpGet("/api/users")]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers() {
             // Get the current user
