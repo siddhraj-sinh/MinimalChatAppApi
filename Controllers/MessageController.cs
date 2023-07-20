@@ -104,88 +104,34 @@ namespace MinimalChatAppApi.Controllers
             return Ok(new { message = "Message edited successfully" });
         }
 
-        // GET: api/Message
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Message>>> GetMessages()
+        [HttpDelete("/api/messages/{messageId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteMessage(int messageId)
         {
-            return await _context.Messages.ToListAsync();
-        }
+            var currentUser = HttpContext.User;
+            // Access user properties
+            var currentUserId = Convert.ToInt32(currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-        // GET: api/Message/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Message>> GetMessage(int id)
-        {
-            var message = await _context.Messages.FindAsync(id);
+            var message = await _context.Messages
+               .Where(m => m.Id == messageId && (m.SenderId == currentUserId))
+               .SingleOrDefaultAsync();
 
+            // Check if the message exists
             if (message == null)
             {
-                return NotFound();
+                return NotFound(new { error = "Message not found" });
             }
 
-            return message;
-        }
-
-        // PUT: api/Message/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutMessage(int id, Message message)
-        {
-            if (id != message.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(message).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MessageExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Message
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Message>> PostMessage(Message message)
-        {
-            _context.Messages.Add(message);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetMessage", new { id = message.Id }, message);
-        }
-
-        // DELETE: api/Message/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMessage(int id)
-        {
-            var message = await _context.Messages.FindAsync(id);
-            if (message == null)
-            {
-                return NotFound();
-            }
-
+            // Remove the message from the database
             _context.Messages.Remove(message);
+
+            // Save the changes to the database
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            // Return 200 OK with a success message
+            return Ok(new { message = "Message deleted successfully" });
         }
 
-        private bool MessageExists(int id)
-        {
-            return _context.Messages.Any(e => e.Id == id);
-        }
+       
     }
 }
