@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinimalChatAppApi.Data;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace MinimalChatAppApi.Controllers
 {
@@ -38,15 +38,18 @@ namespace MinimalChatAppApi.Controllers
 
             var logs = logsQuery.ToList();
 
-            //logs.ForEach(l => {
-            //    l.RequestBody = JObject.Parse(l.RequestBody).ToString(Formatting.None);
-            //});
+            logs.ForEach(l =>
+            {
+                string cleanedString = l.RequestBody.Replace("\r\n", "").Replace(" ", "").Replace("\\","");
+                Console.WriteLine(cleanedString);
+                l.RequestBody = cleanedString;
+            });
 
             // If no logs found based on the provided filter, return 404 Not Found
-            //if (logs.isEmpty)
-            //{
-            //    return NotFound(new { error = "No logs found." });
-            //}
+            if (logs.Count ==0)
+            {
+                return NotFound(new { error = "No logs found." });
+            }
 
             return Ok(new { Logs = logs });
 
