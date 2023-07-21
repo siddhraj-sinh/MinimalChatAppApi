@@ -16,19 +16,25 @@ namespace MinimalChatAppApi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
-            // Configure the foreign key relationship between Message.SenderId and User.Id
-            modelBuilder.Entity<Message>()
-                .HasOne(m => m.Sender)
-                .WithMany()
-                .HasForeignKey(m => m.SenderId)
-                .OnDelete(DeleteBehavior.NoAction); // Specify no action on delete
+            //configure table names
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Message>().ToTable("Messages");
+            modelBuilder.Entity<LogModel>().ToTable("Logs");
 
-            // Configure the foreign key relationship between Message.ReceiverId and User.Id
+
+
+            //configure receiver
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Receiver)
                 .WithMany()
                 .HasForeignKey(m => m.ReceiverId)
-                .OnDelete(DeleteBehavior.NoAction); // Specify no action on delete
+                .OnDelete(DeleteBehavior.NoAction);
+           //configure sender
+            modelBuilder.Entity<Message>()
+              .HasOne(m => m.Sender)
+              .WithMany()
+              .HasForeignKey(m => m.SenderId)
+              .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -59,7 +59,7 @@ namespace MinimalChatAppApi.Controllers
                 SenderId = Convert.ToInt32(senderId),
                 ReceiverId = message.ReceiverId,
                 MessageContent = message.Content,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             };
 
             // Save the message to the database
@@ -117,7 +117,7 @@ namespace MinimalChatAppApi.Controllers
 
             // Update the message content
             message.MessageContent = messageDto.Content;
-            message.Timestamp = DateTime.UtcNow;
+            message.Timestamp = DateTime.Now;
 
             // Save the changes to the database
             await _context.SaveChangesAsync();
