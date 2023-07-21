@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinimalChatAppApi.Data;
 using MinimalChatAppApi.Models;
 
@@ -27,6 +28,19 @@ namespace MinimalChatAppApi.Controllers
         [HttpPost("/api/messages")]
         [Authorize]
         public async Task<IActionResult> SendMessages([FromBody] SendMessageDto message) {
+            // Check if the receiverId is provided and valid
+            if (message.ReceiverId <= 0)
+            {
+                return BadRequest(new { error = "ReceiverId is required and must be a positive integer." });
+            }
+
+            // Check if the content is provided and not empty
+            if (string.IsNullOrEmpty(message.Content))
+            {
+                return BadRequest(new { error = "Content is required and must not be empty." });
+            }
+
+
             // Get the current user
             var currentUser = HttpContext.User;
 
@@ -71,6 +85,14 @@ namespace MinimalChatAppApi.Controllers
         [Authorize]
         public async Task<IActionResult> EditMessage(int messageId, [FromBody] EditMessageDto messageDto)
         {
+            
+
+            // Check if the content is provided and not empty
+            if (string.IsNullOrEmpty(messageDto.Content))
+            {
+                return BadRequest(new { error = "Content is required and must not be empty." });
+            }
+
             // Get the current user
             var currentUser = HttpContext.User;
 
@@ -133,7 +155,10 @@ namespace MinimalChatAppApi.Controllers
         }
 
         [HttpGet("/api/messages")]
+        [Authorize]
         public async Task<IActionResult> GetConversationHistory([FromBody] ConversationDto requestDto) {
+
+            
             var currentUser = HttpContext.User;
             // Access user properties
             var currentUserId = Convert.ToInt32(currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value);
