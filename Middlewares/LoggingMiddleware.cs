@@ -1,4 +1,6 @@
-﻿using MinimalChatAppApi.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using MinimalChatAppApi.Data;
+using MinimalChatAppApi.Models;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -9,15 +11,17 @@ namespace MinimalChatAppApi.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<LoggingMiddleware> _logger;
-        public LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> logger)
+        private readonly IDbContextFactory<ChatContext> _contextFactory;
+        public LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> logger, IDbContextFactory<ChatContext> contextFactory)
         {
             _next = next;
+            _contextFactory = contextFactory;
             _logger = logger;
         }
         public async Task Invoke(HttpContext httpContext)
         {
+            using var dbContext = _contextFactory.CreateDbContext();
 
-           
             httpContext.Request.EnableBuffering();
             var requestBody = await new System.IO.StreamReader(httpContext.Request.Body).ReadToEndAsync();
             httpContext.Request.Body.Position = 0;
@@ -39,7 +43,8 @@ namespace MinimalChatAppApi.Middlewares
             };
 
             Console.WriteLine(userName);
-
+            dbContext.Log.Add(logEntry);
+            await dbContext.SaveChangesAsync();
 
             _logger.LogInformation(logEntry.ToString());
 
