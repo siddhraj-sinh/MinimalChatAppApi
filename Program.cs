@@ -19,6 +19,16 @@ namespace MinimalChatAppApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            //added cors
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
             builder.Services.AddDbContextFactory<ChatContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("ChatContext")));
             builder.Services.AddDbContext<ChatContext>(options =>
@@ -68,6 +78,7 @@ namespace MinimalChatAppApi
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseCors(); // Enable CORS
             app.MapControllers();
             app.UseMiddleware<LoggingMiddleware>();
             app.Run();
